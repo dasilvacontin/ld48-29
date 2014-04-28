@@ -10,6 +10,7 @@ var Player = function()
 	this.AI = false;
 	this.cell = undefined;
 	this.orientation = 0;
+	this.id = pid++;
 };
 
 //orientation

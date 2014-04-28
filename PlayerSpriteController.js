@@ -3,7 +3,30 @@
 
 var PLAYER_HEIGHT = 8;
 var PLAYER_RADIUS = 15;
+var PLAYER_INNER_RADIUS = 10;
 var PLAYER_FLOAT = 10;
+
+var pdircanvas = document.createElement('canvas');
+pdircanvas.width = pdircanvas.height = CELL_EDGE;
+var pdirctx = pdircanvas.getContext('2d');
+
+pdirctx.fillStyle = 'white';
+pdirctx.arc(CELL_EDGE/2, CELL_EDGE/2, PLAYER_RADIUS, Math.PI, Math.PI*1.5, false);
+pdirctx.lineTo(CELL_EDGE/2, CELL_EDGE/2);
+pdirctx.lineTo(CELL_EDGE/2-PLAYER_RADIUS, CELL_EDGE/2);
+pdirctx.fill();
+pdirctx.closePath();
+
+pdirctx.globalCompositeOperation = "destination-in";
+
+pdirctx.beginPath();
+pdirctx.arc(CELL_EDGE/2, CELL_EDGE/2, PLAYER_INNER_RADIUS, Math.PI, Math.PI*1.5, false);
+pdirctx.lineTo(CELL_EDGE/2, CELL_EDGE/2);
+pdirctx.lineTo(CELL_EDGE/2-PLAYER_INNER_RADIUS, CELL_EDGE/2);
+pdirctx.fill();
+pdirctx.closePath();
+
+var PDIR_TEXTURE = new PIXI.Texture.fromCanvas(pdircanvas);
 
 var p0canvas = document.createElement('canvas');
 p0canvas.width = CELL_EDGE;
@@ -35,15 +58,27 @@ shadowctx.closePath();
 
 var PSHADOW_TEXTURE = new PIXI.Texture.fromCanvas(pshadowcanvas);
 
+var TEAM_COLOR = [randColor(), randColor()];
+
+function hexstringToNum(str)
+{
+	return parseInt("0x"+str.slice(1));
+}
+
 var TEAM_TEXTURE = [
-	new PIXI.Texture.fromCanvas( dyeImageWithColor(p0canvas, randColor(), 0.5) ),
-	new PIXI.Texture.fromCanvas( dyeImageWithColor(p0canvas, randColor(), 0.5) )
+	new PIXI.Texture.fromCanvas( dyeImageWithColor(p0canvas, TEAM_COLOR[0], 0.5) ),
+	new PIXI.Texture.fromCanvas( dyeImageWithColor(p0canvas, TEAM_COLOR[1], 0.5) )
 ];
 
 var PlayerSpriteController = function(player)
 {
 	var texture = TEAM_TEXTURE[player.getTeam()];
 	this.sprite = new PIXI.DisplayObjectContainer();
+
+	this.hpring = new HPRingSpriteController (TEAM_COLOR[player.getTeam()]);
+	this.hpringSprite = this.hpring.getSprite();
+	this.sprite.addChild(this.hpringSprite);
+	if (!player.isAI()) this.hpring.setLocal();
 
 	this.shadow = new PIXI.Sprite(PSHADOW_TEXTURE);
 	this.sprite.addChild(this.shadow);
@@ -58,6 +93,15 @@ var PlayerSpriteController = function(player)
 	this.discSprite.position.y = - PLAYER_FLOAT;
 	this.sprite.addChild(this.discSprite);
 
+	this.dirSprite = new PIXI.Sprite(PDIR_TEXTURE);
+	this.discSprite.addChild(this.dirSprite);
+	this.dirSprite.anchor.x = 0.5;
+	this.dirSprite.anchor.y = 0.5;
+	this.dirSprite.position.x = CELL_EDGE/2;
+	this.dirSprite.position.y = CELL_EDGE/4;
+	this.dirSprite.rotation = player.getOrientation()*Math.PI/2+Math.PI/4;
+	this.dirSprite.alpha = 0.75;
+
 	this.t = 0;
 	this.tt = Math.random()/10 +1;
 }
@@ -65,7 +109,11 @@ var PlayerSpriteController = function(player)
 PlayerSpriteController.prototype.logic = function(dt)
 {
 	this.t += dt*this.tt;
-	this.discSprite.position.y = - PLAYER_FLOAT + 5*Math.sin(this.t/10);
+	var offset = 5*Math.sin(this.t/15);
+	this.discSprite.position.y = - PLAYER_FLOAT + offset;
+	this.shadow.scale.x = this.shadow.scale.y = 0.8+0.1*((offset+5)/10);
+
+	this.hpring.logic(dt);
 }
 
 PlayerSpriteController.prototype.getSprite = function()

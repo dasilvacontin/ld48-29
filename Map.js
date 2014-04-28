@@ -28,6 +28,7 @@ Map.prototype.getRandomCell = function()
 
 Map.prototype.getCellAt = function(i, j)
 {
+	if (this.cells[i] === undefined) return undefined;
 	return this.cells[i][j];
 }
 

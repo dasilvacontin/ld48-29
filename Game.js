@@ -3,9 +3,14 @@
 
 var Game = function()
 {
- 	this.map = new Map(15,15);
+ 	this.map = new Map(10,10);
  	this.teams = [];
  	this.maxMoves = 6;
+
+	//events
+	this.onPlayerMoveToCell = dummyf;
+	this.onPlayerUsedSplash = dummyf;
+	this.onPlayerShot = dummyf;
 }
 
 Game.prototype.getMap = function()
@@ -63,7 +68,7 @@ Game.prototype.playerPerformMove = function(player, move)
 		case TYPE_SPLASH:
 			this.playerUsedSplash(player);
 			break;
-		casse TYPE_ROTATE:
+		case TYPE_ROTATE:
 			break;
 	}
 }
@@ -71,6 +76,7 @@ Game.prototype.playerPerformMove = function(player, move)
 //returns true when successfully moved player
 Game.prototype.movePlayerWithDir = function(player, dir)
 {
+	console.log("Game movePlayerWithDir");
 	var targetCell = this.map.cellPlusDir(player.cell, dir);
 	if (targetCell.isBlock()) return false;
 	if (targetCell.hasPlayer()) {
@@ -95,10 +101,14 @@ Game.prototype.movePlayerWithDir = function(player, dir)
 Game.prototype.movePlayerToCell = function(player, cell)
 {
 	if (cell.isBlock()) return;
+
+	this.onPlayerMoveToCell(player, cell);
+
 	if (player.getCell()) player.getCell().setPlayer(undefined);
 	cell.setPlayer(player);
 	player.setCell(cell);
 
+	console.log("Game DONE movePlayerToCell");
 };
 
 Game.prototype.playerShoots = function(player)
@@ -106,17 +116,23 @@ Game.prototype.playerShoots = function(player)
 	var cell = this.map.cellPlusDir(player.getCell(), player.getOrientation());
 	while (cell !== undefined) {
 		var victim = cell.getPlayer();
-		if (victim !== undefined) return victim.hurt(1);
+		if (victim !== undefined) {
+			this.onPlayerShot(player);
+			return victim.hurt(1);
+		}
 		cell = this.map.cellPlusDir(cell, player.getOrientation());
 	}
 }
 
 Game.prototype.playerUsedSplash = function(player)
 {
+
 	var center = player.getCell();
+	this.onPlayerUsedSplash(player);
+	console.log("splash");
 
 	for (var i = 0; i < 4; ++i) {
-		var targetCell = this.maps.cellPlusDir(center, i);
+		var targetCell = this.map.cellPlusDir(center, i);
 		if (targetCell === undefined) continue;
 		var victim = targetCell.getPlayer();
 		if (victim) victim.hurt(2);

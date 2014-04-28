@@ -14,7 +14,7 @@ var MapSpriteController = function(map)
 	//this.sprite.addChild(bg);
 
 	this.cells = [];
-	this.players = [];
+	this.players = {};
 
 	bg.beginFill(0x333333);
 	bg.lineStyle(2, 0xFFFFFF, 1);
@@ -33,29 +33,12 @@ var MapSpriteController = function(map)
 
 			if (cell.hasPlayer()) {
 				console.log("player!");
-				var psc = new PlayerSpriteController(cell.getPlayer());
+				var player = cell.getPlayer();
+				var psc = new PlayerSpriteController(player);
 				csc.setPlayer(psc);
-				this.players.push(psc);
+				this.players[player.id] = psc;
 			}
 
-			//if (!cell.isBlock()) continue;
-
-			/*
-			var block = new BlockSpriteController(cell);
-			block.position.x = j*CELL_EDGE;
-			block.position.y = i*CELL_EDGE;
-			this.blockSprites.push(block);
-			this.sprite.addChild(block);
-			*/
-
-			/*
-			var blockSprite = new PIXI.Sprite(BLOCK_TEXTURE);
-			blockSprite.position.x = j*CELL_EDGE;
-			blockSprite.position.y = i*CELL_EDGE;
-			blockSprite.anchor.x = 0;
-			blockSprite.anchor.y = BLOCK_HEIGHT/(CELL_EDGE+BLOCK_HEIGHT);
-			this.sprite.addChild(blockSprite);
-			*/
 		}
 
 		this.cells.push(row);
@@ -63,14 +46,42 @@ var MapSpriteController = function(map)
 	}
 };
 
+MapSpriteController.prototype.getCellAt = function(i, j)
+{
+	if (this.cells[i] === undefined) return undefined;
+	return this.cells[i][j];
+}
+
+MapSpriteController.prototype.cellPlusDir = function (cell, dir)
+{
+	var inc = DIR_INC[dir];
+	return this.getCellAt(cell.i+inc.i,cell.j+inc.j);
+}
+
 MapSpriteController.prototype.logic = function(dt)
 {
 	for (var i = 0; i < this.cells.length; ++i) {
 		for (var j = 0; j < this.cells[0].length; ++j) {
-			this.cells[i][j].logic(dt);
+			var csc = this.cells[i][j];
+			var inertia = csc.logic(dt);
+			if (inertia > 0) {
+				//console.log("splash with inertia: "+inertia);
+				this.splashOnCellWithInertia(csc.cell, inertia);
+			}
+			if (csc.bullet) {
+				var bullet = csc.bullet;
+				bullet.logic();
+				if (bullet.isOutOfBounds()) {
+					var nextCell = this.getCellAt(csc.cell, bullet.dir);
+					if (nextCell && !nextCell.cell.isBlock() && !nextCell.cell.hasPlayer()) {
+						csc.setBullet(undefined);
+						nextCell.setBullet(bullet);
+					}
+				}
+			}
 		}
 	}
-	for (var k = 0; k < this.players.length; ++k) this.players[k].logic(dt);
+	for (var pid in this.players) this.players[pid].logic(dt);
 }
 
 MapSpriteController.prototype.centerInRect = function(w, h)
@@ -79,9 +90,55 @@ MapSpriteController.prototype.centerInRect = function(w, h)
 	this.sprite.position.y = Math.floor((h-this.h-CELL_HEIGHT)/2);
 };
 
+MapSpriteController.prototype.splashOnCellWithInertia = function(cell, inertia)
+{
+	if (inertia <= 0) return;
+
+	var csc = this.getCellAt(cell.i, cell.j);
+	if (csc === undefined) return;
+	csc.addInertia(inertia);
+
+	for (var i = 0; i < 4; ++i) {
+		var targetCell = this.map.cellPlusDir(cell, i);
+		if (targetCell !== undefined) this.splashOnCellWithInertia(targetCell, inertia-5);
+	}
+
+};
+
 MapSpriteController.prototype.getSprite = function()
 {
 	return this.sprite;
+}
+
+MapSpriteController.prototype.onPlayerMoveToCellCallback = function(player, cell)
+{
+	console.log("-----");
+	console.log("MapSpriteController onPlayerMoveToCellCallback");
+
+	var psc = this.players[player.id];
+	console.log(psc);
+
+	var oldCell = player.getCell();
+	var csc = this.getCellAt(oldCell.i, oldCell.j);
+	csc.setPlayer(undefined);
+
+	var csc = this.getCellAt(cell.i, cell.j);
+	csc.setPlayer(psc);
+}
+
+MapSpriteController.prototype.onPlayerUsedSplashCallback = function(player)
+{
+	console.log("SPLASH!");
+	this.splashOnCellWithInertia(player.cell, 10);
+	this.getCellAt(player.cell.i, player.cell.j).inertia = 0;
+}
+
+MapSpriteController.prototype.onPlayerShotCallback = function(player)
+{
+	console.log("SHOT!");
+	var bsc = new BulletSpriteController(player);
+	var csc = this.getCellAt(player.cell.i, player.cell.j);
+	csc.setBullet(bsc);
 }
 
 MapSpriteController.prototype.constructor = MapSpriteController;

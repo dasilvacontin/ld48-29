@@ -46,7 +46,7 @@ BlockSpriteController.prototype.logic = function(dt)
 		this.offsetY = 0;
 		this.block.position.y = this.offsetY;
 		this.shadow.alpha = 0;
-		return this.speedY/5;
+		return this.speedY/7;
 	}
 	return 0;
 }

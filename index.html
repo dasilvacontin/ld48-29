@@ -12,11 +12,12 @@
 	<script src="Map.js"></script>
 	<script src="Game.js"></script>
 
+	<script src="HPRingSpriteController.js"></script>
+	<script src="BulletSpriteController.js"></script>
 	<script src="PlayerSpriteController.js"></script>
 	<script src="BlockSpriteController.js"></script>
 	<script src="CellSpriteController.js"></script>
 	<script src="MapSpriteController.js"></script>
-	
 
 	<style>
 
@@ -42,17 +43,22 @@
 			loop: true,
 			volume: 0.5
 		});
-		*/
+*/
 	
 		var gaem = new Game();
 
 		var sprites = [];
 
+		var localPlayer = undefined;
+
 		for (var i = 0; i < 10; ++i) {
 
 			var player = new Player();
 			player.setRandomOrientation();
+
 			if (i != 0) player.makeAI();
+			else localPlayer = player;
+
 			var team = (i < 5? 0 : 1);
 			gaem.addPlayerToTeam(player, team);
 
@@ -63,6 +69,10 @@
 		}
 
 		var msc = new MapSpriteController(gaem.getMap());
+
+		gaem.onPlayerMoveToCell = msc.onPlayerMoveToCellCallback.bind(msc);
+		gaem.onPlayerUsedSplash = msc.onPlayerUsedSplashCallback.bind(msc);
+		gaem.onPlayerShot = msc.onPlayerShotCallback.bind(msc);
 
 		var stage = new PIXI.Stage(0xEEEEEE);
 		stage.addChild(msc.getSprite());

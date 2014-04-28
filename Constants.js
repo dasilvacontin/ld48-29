@@ -8,7 +8,7 @@ function randColor()
 
 var CELL_EDGE = 50;
 var CELL_SPRING_K = 0.2;
-var BLOCK_HEIGHT = 20;
+var BLOCK_HEIGHT = 15;
 var SPRING_E = 0.05;
 
 var DIR_UP = 0,
@@ -18,10 +18,15 @@ var DIR_UP = 0,
 
 var TYPE_MOVE = 0,
 	TYPE_SHOOT = 1,
-	TYPE_SPLASH = 2;
+	TYPE_SPLASH = 2,
+	TYPE_ROTATE = 3;
 
 var DIR_INC = [
 	{i:-1,j:0},
 	{i:0,j:1},
 	{i:1,j:0},
 	{i:0,j:-1}];
+
+var pid = 0;
+
+var dummyf = function(){};
