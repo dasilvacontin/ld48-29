@@ -34,16 +34,12 @@
 
 	<script>
 
-	"POL-hard-corps-short.wav"
-
-		/*
 		var bgmusic = new Howl({
 			urls: ['POL-hard-corps-short.wav'],
 			autoplay: true,
 			loop: true,
 			volume: 0.5
 		});
-*/
 	
 		var gaem = new Game();
 
@@ -51,7 +47,7 @@
 
 		var localPlayer = undefined;
 
-		for (var i = 0; i < 10; ++i) {
+		for (var i = 0; i < TEAMS; ++i) {
 
 			var player = new Player();
 			player.setRandomOrientation();
@@ -59,7 +55,7 @@
 			if (i != 0) player.makeAI();
 			else localPlayer = player;
 
-			var team = (i < 5? 0 : 1);
+			var team = i;
 			gaem.addPlayerToTeam(player, team);
 
 			var psc = new PlayerSpriteController(player);
@@ -73,6 +69,7 @@
 		gaem.onPlayerMoveToCell = msc.onPlayerMoveToCellCallback.bind(msc);
 		gaem.onPlayerUsedSplash = msc.onPlayerUsedSplashCallback.bind(msc);
 		gaem.onPlayerShot = msc.onPlayerShotCallback.bind(msc);
+		gaem.onUpdatePlayer = msc.onUpdatePlayerCallback.bind(msc);
 
 		var stage = new PIXI.Stage(0xEEEEEE);
 		stage.addChild(msc.getSprite());
@@ -103,6 +100,35 @@
 		}
 
 		requestAnimFrame(animate);
+
+		document.addEventListener("keydown", function (evt) {
+			switch(String.fromCharCode(evt.keyCode)) {
+				case 'W':
+					gaem.playerPerformMove(localPlayer, {type:TYPE_MOVE, dir:0});
+					break;
+				case 'A':
+					gaem.playerPerformMove(localPlayer, {type:TYPE_MOVE, dir:3});
+					break;
+				case 'D':
+					gaem.playerPerformMove(localPlayer, {type:TYPE_MOVE, dir:1});
+					break;
+				case 'S':
+					gaem.playerPerformMove(localPlayer, {type:TYPE_MOVE, dir:2});
+					break;
+				case 'E':
+					gaem.playerPerformMove(localPlayer, {type:TYPE_ROTATE, dir:1});
+					break;
+				case 'Q':
+					gaem.playerPerformMove(localPlayer, {type:TYPE_ROTATE, dir:-1});
+					break;
+				case 'O':
+					gaem.playerPerformMove(localPlayer, {type:TYPE_SHOOT});
+					break;
+				case 'P':
+					gaem.playerPerformMove(localPlayer, {type:TYPE_SPLASH});
+					break;
+			}
+	    });
 
 	</script>
 

@@ -72,10 +72,14 @@ MapSpriteController.prototype.logic = function(dt)
 				var bullet = csc.bullet;
 				bullet.logic();
 				if (bullet.isOutOfBounds()) {
-					var nextCell = this.getCellAt(csc.cell, bullet.dir);
-					if (nextCell && !nextCell.cell.isBlock() && !nextCell.cell.hasPlayer()) {
-						csc.setBullet(undefined);
-						nextCell.setBullet(bullet);
+					var nextCsc = this.cellPlusDir(csc.cell, bullet.dir);
+					csc.setBullet(undefined);
+					if (nextCsc && !nextCsc.cell.isBlock() && !nextCsc.cell.hasPlayer()) {
+						nextCsc.setBullet(bullet);
+						nextCsc.addInertia(5);
+					} else {
+						if (nextCsc.cell.hasPlayer()) this.players[nextCsc.cell.getPlayer().id].syncWithData();
+						nextCsc.addInertia(10);
 					}
 				}
 			}
@@ -112,11 +116,7 @@ MapSpriteController.prototype.getSprite = function()
 
 MapSpriteController.prototype.onPlayerMoveToCellCallback = function(player, cell)
 {
-	console.log("-----");
-	console.log("MapSpriteController onPlayerMoveToCellCallback");
-
 	var psc = this.players[player.id];
-	console.log(psc);
 
 	var oldCell = player.getCell();
 	var csc = this.getCellAt(oldCell.i, oldCell.j);
@@ -128,17 +128,28 @@ MapSpriteController.prototype.onPlayerMoveToCellCallback = function(player, cell
 
 MapSpriteController.prototype.onPlayerUsedSplashCallback = function(player)
 {
-	console.log("SPLASH!");
 	this.splashOnCellWithInertia(player.cell, 10);
 	this.getCellAt(player.cell.i, player.cell.j).inertia = 0;
 }
 
 MapSpriteController.prototype.onPlayerShotCallback = function(player)
 {
-	console.log("SHOT!");
 	var bsc = new BulletSpriteController(player);
-	var csc = this.getCellAt(player.cell.i, player.cell.j);
-	csc.setBullet(bsc);
+	var csc = this.cellPlusDir(player.cell, player.getOrientation());
+	
+	if (csc && !csc.cell.isBlock() && !csc.cell.hasPlayer()) {
+		csc.setBullet(bsc);
+		csc.addInertia(5);
+	} else {
+		if (csc.cell.hasPlayer()) this.players[csc.cell.getPlayer().id].syncWithData();
+		csc.addInertia(10);
+	}
+
+}
+
+MapSpriteController.prototype.onUpdatePlayerCallback = function(player)
+{
+	this.players[player.id].syncWithData();
 }
 
 MapSpriteController.prototype.constructor = MapSpriteController;

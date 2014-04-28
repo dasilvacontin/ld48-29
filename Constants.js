@@ -30,3 +30,5 @@ var DIR_INC = [
 var pid = 0;
 
 var dummyf = function(){};
+
+var TEAMS = 10;

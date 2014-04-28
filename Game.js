@@ -11,6 +11,7 @@ var Game = function()
 	this.onPlayerMoveToCell = dummyf;
 	this.onPlayerUsedSplash = dummyf;
 	this.onPlayerShot = dummyf;
+	this.onUpdatePlayer = dummyf;
 }
 
 Game.prototype.getMap = function()
@@ -69,6 +70,8 @@ Game.prototype.playerPerformMove = function(player, move)
 			this.playerUsedSplash(player);
 			break;
 		case TYPE_ROTATE:
+			player.rotate(move.dir);
+			this.onUpdatePlayer(player);
 			break;
 	}
 }
@@ -76,7 +79,6 @@ Game.prototype.playerPerformMove = function(player, move)
 //returns true when successfully moved player
 Game.prototype.movePlayerWithDir = function(player, dir)
 {
-	console.log("Game movePlayerWithDir");
 	var targetCell = this.map.cellPlusDir(player.cell, dir);
 	if (targetCell.isBlock()) return false;
 	if (targetCell.hasPlayer()) {
@@ -107,8 +109,6 @@ Game.prototype.movePlayerToCell = function(player, cell)
 	if (player.getCell()) player.getCell().setPlayer(undefined);
 	cell.setPlayer(player);
 	player.setCell(cell);
-
-	console.log("Game DONE movePlayerToCell");
 };
 
 Game.prototype.playerShoots = function(player)
@@ -117,11 +117,12 @@ Game.prototype.playerShoots = function(player)
 	while (cell !== undefined) {
 		var victim = cell.getPlayer();
 		if (victim !== undefined) {
-			this.onPlayerShot(player);
-			return victim.hurt(1);
+			victim.hurt(1);
+			break;
 		}
 		cell = this.map.cellPlusDir(cell, player.getOrientation());
 	}
+	this.onPlayerShot(player);
 }
 
 Game.prototype.playerUsedSplash = function(player)
@@ -129,13 +130,15 @@ Game.prototype.playerUsedSplash = function(player)
 
 	var center = player.getCell();
 	this.onPlayerUsedSplash(player);
-	console.log("splash");
 
 	for (var i = 0; i < 4; ++i) {
 		var targetCell = this.map.cellPlusDir(center, i);
 		if (targetCell === undefined) continue;
 		var victim = targetCell.getPlayer();
-		if (victim) victim.hurt(2);
+		if (victim) {
+			victim.hurt(2);
+			this.onUpdatePlayer(victim);
+		}
 	}
 }
 

@@ -89,8 +89,9 @@ CellSpriteController.prototype.setBullet = function(bullet)
 	if (this.bullet) this.sprite.removeChild(this.bullet.getSprite());
 	this.bullet = bullet;
 	if (bullet) {
-		bullet.resetPosition();
+		bullet.cropPosition();
 		this.sprite.addChild(bullet.getSprite());
+		bullet.updateSpritePosition();
 	}
 }
 

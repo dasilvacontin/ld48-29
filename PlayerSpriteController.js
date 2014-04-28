@@ -58,20 +58,21 @@ shadowctx.closePath();
 
 var PSHADOW_TEXTURE = new PIXI.Texture.fromCanvas(pshadowcanvas);
 
-var TEAM_COLOR = [randColor(), randColor()];
+var TEAM_COLOR = [];
+var TEAM_TEXTURE = []
+for (var i = 0; i < TEAMS; ++i) {
+	TEAM_COLOR.push(randColor());
+	TEAM_TEXTURE.push( new PIXI.Texture.fromCanvas( dyeImageWithColor(p0canvas, TEAM_COLOR[i], 0.5) ) );
+}
 
 function hexstringToNum(str)
 {
 	return parseInt("0x"+str.slice(1));
 }
 
-var TEAM_TEXTURE = [
-	new PIXI.Texture.fromCanvas( dyeImageWithColor(p0canvas, TEAM_COLOR[0], 0.5) ),
-	new PIXI.Texture.fromCanvas( dyeImageWithColor(p0canvas, TEAM_COLOR[1], 0.5) )
-];
-
 var PlayerSpriteController = function(player)
 {
+	this.player = player;
 	var texture = TEAM_TEXTURE[player.getTeam()];
 	this.sprite = new PIXI.DisplayObjectContainer();
 
@@ -110,8 +111,10 @@ PlayerSpriteController.prototype.logic = function(dt)
 {
 	this.t += dt*this.tt;
 	var offset = 5*Math.sin(this.t/15);
-	this.discSprite.position.y = - PLAYER_FLOAT + offset;
-	this.shadow.scale.x = this.shadow.scale.y = 0.8+0.1*((offset+5)/10);
+	//if (!this.player.isAI()) {
+		this.discSprite.position.y = - PLAYER_FLOAT + offset;
+		this.shadow.scale.x = this.shadow.scale.y = 0.8+0.1*((offset+5)/10);
+	//}
 
 	this.hpring.logic(dt);
 }
@@ -123,7 +126,8 @@ PlayerSpriteController.prototype.getSprite = function()
 
 PlayerSpriteController.prototype.syncWithData = function()
 {
-	//TO-DO
+	this.dirSprite.rotation = this.player.getOrientation()*Math.PI/2+Math.PI/4;
+	this.hpring.setPercentage(this.player.getHP()/this.player.getMaxHP());
 }
 
 PlayerSpriteController.prototype.constructor = PlayerSpriteController;
