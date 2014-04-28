@@ -1,0 +1,32 @@
+<html>
+<head>
+
+	<style>
+
+		canvas {
+			width: 100%;
+			height: 100%;
+		}
+
+	</style>
+
+</head>
+<body>
+
+	<canvas id="myCanvas"></canvas>
+
+	<script>
+
+		var gaem = new Game();
+
+		for (var i = 0; i < 10; ++i) {
+			var player = new Player();
+			player.makeAI();
+			var team = (i < 5? 0 : 1);
+			gaem.addPlayerToTeam(player, team);
+		}
+
+	</script>
+
+</body>
+</html>
