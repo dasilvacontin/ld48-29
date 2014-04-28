@@ -6,20 +6,35 @@ var Map  = function(w, h)
 	this.w = w;
 	this.h = h;
 	this.generate();
-	this.cells = [];
-	return this;
 };
 
-Map.prototype.randomCell = function()
+Map.prototype.getWidth = function()
+{
+	return this.w;
+}
+
+Map.prototype.getHeight = function()
+{
+	return this.h;
+}
+
+Map.prototype.getRandomCell = function()
 {
 	var i = Math.floor(Math.random()*this.h),
 		j = Math.floor(Math.random()*this.w);
+	if (this.cells[i] === undefined) return undefined;
 	return this.cells[i][j];
 }
 
 Map.prototype.getCellAt = function(i, j)
 {
 	return this.cells[i][j];
+}
+
+Map.prototype.cellPlusDir = function (cell, dir)
+{
+	var inc = DIR_INC[dir];
+	return this.getCellAt(cell.i+inc.i,cell.j+inc.j);
 }
 
 Map.prototype.generate = function()
@@ -35,8 +50,15 @@ Map.prototype.generate = function()
 
 	}
 
-	var blocks = this.w*this.h/2;
-	for (var k = 0; k < blocks; ++i) this.randomCell().makeObstacle();
+	var blocks = this.w*this.h/10;
+	console.log(blocks);
+	for (var k = 0; k < blocks; ++k) this.getRandomCell().makeObstacle();
+
+	for (var i = 0; i < this.h; ++i) {
+		for (var j = 0; j < this.w; ++j) {
+			if (i == 0 || j == 0 || i == this.h-1 || j == this.w-1) this.getCellAt(i,j).makeObstacle();
+		}
+	}
 
 	return this;
 
