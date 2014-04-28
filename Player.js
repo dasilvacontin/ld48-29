@@ -4,7 +4,8 @@
 var Player = function()
 {
 	this.nextTeammate = undefined;
-	this.HP = 5;
+	this.HP = 10;
+	this.maxHP = 10;
 	this.moves = [];
 	this.team = undefined;
 	this.AI = false;
@@ -14,6 +15,12 @@ var Player = function()
 };
 
 //orientation
+Player.prototype.rotate = function (r) {
+	this.orientation = this.orientation + r;
+	if (this.orientation < 0) this.orientation += 4;
+	else if (this.orientation > 3) this.orientation -= 4;
+}
+
 Player.prototype.setRandomOrientation = function()
 {
 	this.orientation = Math.floor(Math.random()*4);
@@ -90,6 +97,11 @@ Player.prototype.isAlive = function()
 Player.prototype.getHP = function()
 {
 	return this.HP;
+}
+
+Player.prototype.getMaxHP = function()
+{
+	return this.maxHP;
 }
 
 Player.prototype.constructor = Player;

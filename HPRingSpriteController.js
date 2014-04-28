@@ -4,10 +4,13 @@
 var HPRingCanvasForPercentage = function(p, color, oldBuffer)
 {
 
-	var ringcanvas = oldBuffer || document.createElement('canvas');
+	var ringcanvas = document.createElement('canvas');
 	ringcanvas.width = ringcanvas.height = CELL_EDGE;
 	var ringctx = ringcanvas.getContext('2d');
 
+	ringctx.clearRect(0,0,CELL_EDGE,CELL_EDGE);
+
+	ringctx.save();
 	ringctx.beginPath();
 	ringctx.arc(CELL_EDGE/2, CELL_EDGE/2, PLAYER_RADIUS+7, 0 + (1-p)*Math.PI/2, Math.PI/2, false);
 	ringctx.lineTo(CELL_EDGE/2, CELL_EDGE/2);
@@ -24,6 +27,7 @@ var HPRingCanvasForPercentage = function(p, color, oldBuffer)
 	ringctx.globalCompositeOperation = "destination-out";
 	ringctx.fill();
 	ringctx.closePath();
+	ringctx.restore();
 
 	return ringcanvas;
 }
@@ -34,6 +38,7 @@ var localRingCanvas = function (color)
 	localcanvas.width = localcanvas.height = CELL_EDGE;
 	var localctx = localcanvas.getContext('2d');
 
+	localctx.save();
 	localctx.beginPath();
 	localctx.arc(CELL_EDGE/2, CELL_EDGE/2, CELL_EDGE/2-2, 0, Math.PI/2, false);
 	localctx.lineTo(CELL_EDGE/2, CELL_EDGE/2);
@@ -42,6 +47,7 @@ var localRingCanvas = function (color)
 	localctx.fill();
 	localctx.closePath();
 
+	
 	localctx.beginPath();
 	localctx.arc(CELL_EDGE/2, CELL_EDGE/2, PLAYER_RADIUS-5, 0, Math.PI/2, false);
 	localctx.lineTo(CELL_EDGE/2, CELL_EDGE/2);
@@ -50,6 +56,7 @@ var localRingCanvas = function (color)
 	localctx.globalCompositeOperation = "destination-out";
 	localctx.fill();
 	localctx.closePath();
+	localctx.restore();
 
 	return localcanvas;
 
@@ -109,6 +116,7 @@ HPRingSpriteController.prototype.setPercentage = function(p)
 {
 	this.p = p;
 	this.buffer = HPRingCanvasForPercentage(p, this.color, this.buffer);
+	this.bar.texture = new PIXI.Texture.fromCanvas(this.buffer);
 }
 
 HPRingSpriteController.prototype.getSprite = function()
