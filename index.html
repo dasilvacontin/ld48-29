@@ -27,12 +27,36 @@
 			background-color: #FF0000;
 		}
 
+		#moveList {
+			width: 200px;
+			height: 400px;
+			background-color: white;
+			position: absolute;
+			top: 20px;
+			left: 20px;
+		}
+
+		#moveList p {
+			margin: 20px;
+			padding: 0px;
+			font: 14px Helvetica;
+		}
+
+
 	</style>
 
 </head>
 <body>
 
+	<!--
+	<div id="moveList">
+
+	</div>
+	-->
+
 	<script>
+
+		//var movePanel = document.getElementById("moveList");
 
 		var bgmusic = new Howl({
 			urls: ['POL-hard-corps-short.wav'],
@@ -46,6 +70,7 @@
 		var sprites = [];
 
 		var localPlayer = undefined;
+		var localMoveQueue = [];
 
 		for (var i = 0; i < TEAMS; ++i) {
 
@@ -101,33 +126,68 @@
 
 		requestAnimFrame(animate);
 
+		function updateMoveList () {
+			/*
+			var res = "";
+			for (var i = 0; i < localMoveQueue.length; ++i) {
+				res += "<p>" + localMoveQueue[i].v + "</p>";
+			}
+			movePanel.innerHTML = res;
+			*/
+		}
+
 		document.addEventListener("keydown", function (evt) {
+
+			if (evt.keyCode == 8) {
+				//delete
+				localMoveQueue.pop();
+				updateMoveList();
+				return;
+			}
+			var m;
 			switch(String.fromCharCode(evt.keyCode)) {
 				case 'W':
-					gaem.playerPerformMove(localPlayer, {type:TYPE_MOVE, dir:0});
+					m = {type:TYPE_MOVE, dir:0, v: 'move forward'};
 					break;
 				case 'A':
-					gaem.playerPerformMove(localPlayer, {type:TYPE_MOVE, dir:3});
+					m = {type:TYPE_MOVE, dir:3, v: 'move left'};
 					break;
 				case 'D':
-					gaem.playerPerformMove(localPlayer, {type:TYPE_MOVE, dir:1});
+					m = {type:TYPE_MOVE, dir:1, v: 'move right'};
 					break;
 				case 'S':
-					gaem.playerPerformMove(localPlayer, {type:TYPE_MOVE, dir:2});
+					m = {type:TYPE_MOVE, dir:2, v: 'move backwards'};
 					break;
 				case 'E':
-					gaem.playerPerformMove(localPlayer, {type:TYPE_ROTATE, dir:1});
+					m = {type:TYPE_ROTATE, dir:1, v: 'rotate clockwise'};
 					break;
 				case 'Q':
-					gaem.playerPerformMove(localPlayer, {type:TYPE_ROTATE, dir:-1});
+					m = {type:TYPE_ROTATE, dir:-1, v: 'rotate counterclockwise'};
 					break;
 				case 'O':
-					gaem.playerPerformMove(localPlayer, {type:TYPE_SHOOT});
+					m = {type:TYPE_SHOOT, v: 'shoot attack'};
 					break;
 				case 'P':
-					gaem.playerPerformMove(localPlayer, {type:TYPE_SPLASH});
+					m = {type:TYPE_SPLASH, v: 'splash attack'};
 					break;
 			}
+			gaem.playerPerformMove(localPlayer, m);
+			if (m) localMoveQueue.push(m);
+			while (localMoveQueue.length > 6) localMoveQueue.pop();
+			/*
+			if (localMoveQueue.length == 6) {
+				for (var t = 0; t < gaem.teams.length; ++t) {
+					var player = gaem.teams[t];
+					while (player !== undefined) {
+						player.moves = localMoveQueue.slice(0);
+						player = player.getNextTeammate();
+					}
+				}
+				gaem.step();
+				localMoveQueue = [];
+			}
+			*/
+			updateMoveList();
 	    });
 
 	</script>

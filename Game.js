@@ -45,14 +45,19 @@ Game.prototype.addPlayerToTeam = function (player, team)
 
 Game.prototype.step = function()
 {
+	var worked = false;
 	for (var t = 0; t < this.teams.length; ++t) {
 		var player = this.teams[t];
 		while (player !== undefined) {
 			var move = player.popNextMove();
-			if (move !== undefined) this.playerPerformMove(player, move);
+			if (move !== undefined) {
+				this.playerPerformMove(player, move);
+				worked = true;
+			}
 			player = player.getNextTeammate();
 		}
 	}
+	if (worked) setTimeout(this.step.bind(this), 1*1000);
 }
 
 Game.prototype.playerPerformMove = function(player, move)
@@ -118,6 +123,7 @@ Game.prototype.playerShoots = function(player)
 		var victim = cell.getPlayer();
 		if (victim !== undefined) {
 			victim.hurt(1);
+			if (!victim.isAlive()) cell.setPlayer(undefined);
 			break;
 		}
 		cell = this.map.cellPlusDir(cell, player.getOrientation());
@@ -137,6 +143,7 @@ Game.prototype.playerUsedSplash = function(player)
 		var victim = targetCell.getPlayer();
 		if (victim) {
 			victim.hurt(2);
+			if (!victim.isAlive()) targetCell.setPlayer(undefined);
 			this.onUpdatePlayer(victim);
 		}
 	}

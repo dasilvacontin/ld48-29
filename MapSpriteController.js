@@ -74,11 +74,11 @@ MapSpriteController.prototype.logic = function(dt)
 				if (bullet.isOutOfBounds()) {
 					var nextCsc = this.cellPlusDir(csc.cell, bullet.dir);
 					csc.setBullet(undefined);
-					if (nextCsc && !nextCsc.cell.isBlock() && !nextCsc.cell.hasPlayer()) {
+					if (nextCsc && !nextCsc.cell.isBlock() && !nextCsc.player) {
 						nextCsc.setBullet(bullet);
 						nextCsc.addInertia(5);
 					} else {
-						if (nextCsc.cell.hasPlayer()) this.players[nextCsc.cell.getPlayer().id].syncWithData();
+						if (nextCsc.player) this.onUpdatePlayerCallback(nextCsc.player.player);
 						nextCsc.addInertia(10);
 					}
 				}
@@ -141,7 +141,7 @@ MapSpriteController.prototype.onPlayerShotCallback = function(player)
 		csc.setBullet(bsc);
 		csc.addInertia(5);
 	} else {
-		if (csc.cell.hasPlayer()) this.players[csc.cell.getPlayer().id].syncWithData();
+		if (csc.cell.hasPlayer()) this.onUpdatePlayerCallback(csc.cell.getPlayer());
 		csc.addInertia(10);
 	}
 
@@ -149,7 +149,14 @@ MapSpriteController.prototype.onPlayerShotCallback = function(player)
 
 MapSpriteController.prototype.onUpdatePlayerCallback = function(player)
 {
-	this.players[player.id].syncWithData();
+	
+	if (!player.isAlive()) {
+		var csc = this.getCellAt(player.cell.i, player.cell.j);
+		csc.setPlayer(undefined);
+	} else {
+		var psc = this.players[player.id];
+		psc.syncWithData();
+	}
 }
 
 MapSpriteController.prototype.constructor = MapSpriteController;
